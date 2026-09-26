@@ -1,1 +1,0 @@
-# bootstaticsitegenerator
