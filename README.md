@@ -1,2 +1,1 @@
 # bootstaticsitegenerator
-# bootstaticsitegenerator
