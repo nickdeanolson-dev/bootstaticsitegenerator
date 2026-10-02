@@ -39,15 +39,18 @@ def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
         images = extract_markdown_images(node.text)
         linetext = ""
         linetext = node.text
-        for i in images:
-            istring = (f"![{i[0]}]({i[1]})")
-            splittext = linetext.split(istring)
-            if splittext[0] != "":
-                returnlist.append(TextNode(splittext[0], TextType.TEXT))
-            returnlist.append(TextNode(i[0], TextType.IMAGE, i[1]))
-            linetext = splittext[1]
-        if linetext != "":
-            returnlist.append(TextNode(linetext, TextType.TEXT))
+        if len(images) > 0:
+            for i in images:
+                istring = (f"![{i[0]}]({i[1]})")
+                splittext = linetext.split(istring)
+                if splittext[0] != "":
+                    returnlist.append(TextNode(splittext[0], TextType.TEXT))
+                returnlist.append(TextNode(i[0], TextType.IMAGE, i[1]))
+                linetext = splittext[1]
+            if linetext != "":
+                returnlist.append(TextNode(linetext, TextType.TEXT))
+        else:
+            returnlist.append(node)
     return returnlist
 
 
@@ -59,14 +62,27 @@ def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
         links = extract_markdown_links(node.text)
         linetext = ""
         linetext = node.text
-        for l in links:
-            lstring = (f"[{l[0]}]({l[1]})")
-            splittext = linetext.split(lstring)
-            if splittext[0] != "":
-                returnlist.append(TextNode(splittext[0], TextType.TEXT))
-            returnlist.append(TextNode(l[0], TextType.LINK, l[1]))
-            linetext = splittext[1]
-        if linetext != "":
-            returnlist.append(TextNode(linetext, TextType.TEXT))
+        if len(links) > 0:
+            for l in links:
+                lstring = (f"[{l[0]}]({l[1]})")
+                splittext = linetext.split(lstring)
+                if splittext[0] != "":
+                    returnlist.append(TextNode(splittext[0], TextType.TEXT))
+                returnlist.append(TextNode(l[0], TextType.LINK, l[1]))
+                linetext = splittext[1]
+            if linetext != "":
+                returnlist.append(TextNode(linetext, TextType.TEXT))
+        else:
+            returnlist.append(node)
     return returnlist
 
+
+def text_to_textnodes(text):
+    resultlist = []
+    resultlist = [TextNode(text, TextType.TEXT)]
+    resultlist = split_nodes_delimiter(resultlist, "**", TextType.BOLD)
+    resultlist = split_nodes_delimiter(resultlist, "_", TextType.ITALIC)
+    resultlist = split_nodes_delimiter(resultlist, "`", TextType.CODE)
+    resultlist = split_nodes_image(resultlist)
+    resultlist = split_nodes_link(resultlist)
+    return resultlist
