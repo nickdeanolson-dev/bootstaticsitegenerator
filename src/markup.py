@@ -86,3 +86,15 @@ def text_to_textnodes(text):
     resultlist = split_nodes_image(resultlist)
     resultlist = split_nodes_link(resultlist)
     return resultlist
+
+
+def markdown_to_blocks(markdown):
+    # Split the markdown into blocks based on double newlines
+    blocks = markdown.split("\n\n")
+    result_blocks = []
+    for b in blocks:
+        if b.strip() != "\n":
+            b = b.strip()
+            result_blocks.append(b)
+
+    return result_blocks
