@@ -39,7 +39,7 @@ class TestHTMLNode(unittest.TestCase):
         grandchild_node = LeafNode("b", "grandchild")
         child_node = ParentNode(tag = "span", children = [grandchild_node])
         parent_node = ParentNode(tag = "div", children = [child_node])
-        print(parent_node.to_html())
+        #print(parent_node.to_html())
         self.assertEqual(
             parent_node.to_html(),
             "<div><span><b>grandchild</b></span></div>",
@@ -51,7 +51,7 @@ class TestHTMLNode(unittest.TestCase):
         grandchild_node = ParentNode(tag="b", children = [grandchild_leaf_node, greatgrandchild_node])
         child_node = ParentNode(tag = "span", children = [grandchild_node])
         parent_node = ParentNode(tag = "div", children = [child_node])
-        print(parent_node.to_html())
+        #print(parent_node.to_html())
         self.assertEqual(
             parent_node.to_html(),
             "<div><span><b>grandchild<i>greatgrandchild</i></b></span></div>",

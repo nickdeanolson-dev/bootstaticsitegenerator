@@ -1,5 +1,5 @@
 import unittest
-from markup import split_nodes_delimiter
+from markup import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
 from textnode import TextNode, TextType
 
 
@@ -96,6 +96,130 @@ class TestMarkupNode(unittest.TestCase):
         self.assertEqual(new_nodes[3], node4)
         self.assertEqual(new_nodes[4], node5)
         self.assertEqual(new_nodes[5], node6)
+
+    def test_img1(self):
+        text = "Test line with an embedded ![This is an image](https://i.imgur.com/aKaOqIh.gif) image reference"
+        answer = extract_markdown_images(text)
+        if len(answer) > 0:
+            self.assertEqual(answer[0][0], "This is an image")
+            self.assertEqual(answer[0][1], "https://i.imgur.com/aKaOqIh.gif")
+
+    def test_link1(self):
+        text = "Test line with an embedded [This is an image](https://i.imgur.com/aKaOqIh.gif) link reference"
+        answer = extract_markdown_links(text)
+        if len(answer) > 0:
+            self.assertEqual(answer[0][0], "This is an image")
+            self.assertEqual(answer[0][1], "https://i.imgur.com/aKaOqIh.gif")
+
+    def test_img2(self):
+        text = "![This is an image](https://i.imgur.com/aKaOqIh.gif) image reference"
+        answer = extract_markdown_images(text)
+        if len(answer) > 0:
+            self.assertEqual(answer[0][0], "This is an image")
+            self.assertEqual(answer[0][1], "https://i.imgur.com/aKaOqIh.gif")
+
+    def test_link2(self):
+        text = "[This is an image](https://i.imgur.com/aKaOqIh.gif) link reference"
+        answer = extract_markdown_links(text)
+        if len(answer) > 0:
+            self.assertEqual(answer[0][0], "This is an image")
+            self.assertEqual(answer[0][1], "https://i.imgur.com/aKaOqIh.gif")
+
+    def test_linkNeq1(self):
+        text = "Test line with an embedded ![This is an image](https://i.imgur.com/aKaOqIh.gif) link reference"
+        answer = extract_markdown_links(text)
+        if len(answer) > 0:
+            self.assertNotEqual(answer[0][0], "This is an image")
+            self.assertNotEqual(answer[0][1], "https://i.imgur.com/aKaOqIh.gif")
+
+
+
+    def test_splitimage1(self):
+        text = TextNode("A text ![B image](https://i.imgur.com/aKaOqIh.gif) C text", TextType.TEXT)
+        result = (split_nodes_image([text]))
+        self.assertListEqual(
+            [
+                TextNode("A text ", TextType.TEXT),
+                TextNode("B image", TextType.IMAGE, "https://i.imgur.com/aKaOqIh.gif"),
+                TextNode(" C text", TextType.TEXT),
+            ],
+            result,
+        )
+
+
+
+    def test_splitimage2(self):
+        text = TextNode("A Line ![B image](https://i.imgur.com/aKaOqIh.gif) C line ![D image](https://i.imgur.com/aKaOqIh.png)", TextType.TEXT)
+        result = (split_nodes_image([text]))
+        self.assertListEqual(
+            [
+                TextNode("A Line ", TextType.TEXT),
+                TextNode("B image", TextType.IMAGE, "https://i.imgur.com/aKaOqIh.gif"),
+                TextNode(" C line ", TextType.TEXT),
+                TextNode("D image", TextType.IMAGE, "https://i.imgur.com/aKaOqIh.png"),
+            ],
+            result,
+        )
+
+
+    def test_splitlink1(self):
+        text = TextNode("A text [B link](https://i.imgur.com/aKaOqIh.gif) C text", TextType.TEXT)
+        result = (split_nodes_link([text]))
+        self.assertListEqual(
+            [
+                TextNode("A text ", TextType.TEXT),
+                TextNode("B link", TextType.LINK, "https://i.imgur.com/aKaOqIh.gif"),
+                TextNode(" C text", TextType.TEXT),
+            ],
+            result,
+        )
+
+
+
+    def test_splitlink2(self):
+        text = TextNode("A Line [B link](https://i.imgur.com/aKaOqIh.gif) C line [D link](https://i.imgur.com/aKaOqIh.png)", TextType.TEXT)
+        result = (split_nodes_link([text]))
+        self.assertListEqual(
+            [
+                TextNode("A Line ", TextType.TEXT),
+                TextNode("B link", TextType.LINK, "https://i.imgur.com/aKaOqIh.gif"),
+                TextNode(" C line ", TextType.TEXT),
+                TextNode("D link", TextType.LINK, "https://i.imgur.com/aKaOqIh.png"),
+            ],
+            result,
+        )
+
+
+    def test_splitlink3(self):
+        text = TextNode("A Line [B link](https://i.imgur.com/aKaOqIh.gif) C line [B link repeated](https://i.imgur.com/aKaOqIh.gif)[D link](https://i.imgur.com/aKaOqIh.png) and end text ", TextType.TEXT)
+        result = (split_nodes_link([text]))
+        self.assertListEqual(
+            [
+                TextNode("A Line ", TextType.TEXT),
+                TextNode("B link", TextType.LINK, "https://i.imgur.com/aKaOqIh.gif"),
+                TextNode(" C line ", TextType.TEXT),
+                TextNode("B link repeated", TextType.LINK, "https://i.imgur.com/aKaOqIh.gif"),
+                TextNode("D link", TextType.LINK, "https://i.imgur.com/aKaOqIh.png"),
+                TextNode(" and end text ", TextType.TEXT),
+            ],
+            result,
+        )
+
+    def split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
+            ],
+            new_nodes,
+        )
 
 
 
