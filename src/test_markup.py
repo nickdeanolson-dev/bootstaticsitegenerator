@@ -1,5 +1,6 @@
 import unittest
-from markup import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes, markdown_to_blocks
+from markup import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
+from blockmarkup import BlockType, markdown_to_blocks, block_to_block_type
 from textnode import TextNode, TextType
 
 
@@ -245,6 +246,78 @@ This is the same paragraph on a new line
                 "- This is a list\n- with items",
             ],
         )
+
+
+    def test_block_to_block_type(self):
+        md = """
+This is a
+standard paragraph
+
+```
+this is code
+```
+
+# This is another paragraph with _italic_ text and `code` here
+
+# This is the same paragraph on a new line
+
+- unordered list a
+- unordered list b
+
+- broken UL list a
+> broken UL list b
+
+> quote block line 1
+> quote block line 2
+
+> quote block line 1
+broken quote block line 2
+
+1. This is a list
+2. with items
+3. test
+
+1. broken numbered list
+3. out of order
+
+1. broken numbered list
+2 off format
+
+1. . double digits
+2. . double digits
+3. double digits
+4. double digits
+5. double digits. double digits
+6. double digits
+7. double digits
+8. double digits
+9. double digits
+10. double digits
+"""
+
+        blocks = markdown_to_blocks(md)
+        results = []
+        for b in blocks:
+            results.append(block_to_block_type(b))
+        
+        self.assertEqual(
+            results,
+            [
+                BlockType.PARAGRAPH,
+                BlockType.CODE,
+                BlockType.HEADING,
+                BlockType.HEADING,
+                BlockType.UNORDERED_LIST,
+                BlockType.PARAGRAPH,
+                BlockType.QUOTE,
+                BlockType.PARAGRAPH,
+                BlockType.ORDERED_LIST,
+                BlockType.PARAGRAPH,
+                BlockType.PARAGRAPH,
+                BlockType.ORDERED_LIST,
+            ],
+        )
+
 
 
 if __name__ == "__main__":
