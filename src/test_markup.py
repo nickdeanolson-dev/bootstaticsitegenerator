@@ -1,5 +1,5 @@
 import unittest
-from markup import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
+from markup import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes, extract_title
 from blockmarkup import BlockType, markdown_to_blocks, block_to_block_type
 from textnode import TextNode, TextType
 
@@ -318,6 +318,11 @@ broken quote block line 2
             ],
         )
 
+
+    def test_extract_title(self):
+        with open("contents.txt") as file:
+            content = file.read()
+        extract_title(content)
 
 
 if __name__ == "__main__":
