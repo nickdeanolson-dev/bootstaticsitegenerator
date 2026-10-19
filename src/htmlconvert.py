@@ -10,34 +10,52 @@ def markdown_to_html_node(markdown):
     for block in blocks:
         blocktype = block_to_block_type(block)
         if blocktype == BlockType.PARAGRAPH:
-            processed_blocks.append((blocktype, f"<p>{block}</p>"))
-        elif blocktype == BlockType.HEADING:
-            heading_level = block.count("#", 0, block.find(" "))
-            heading = f"<h{heading_level}>{block[heading_level + 1:].strip()}</h{heading_level}>"
-            processed_blocks.append((blocktype, heading))
+            text_nodes = text_to_textnodes(block)
+            html_nodes = []
+            for node in text_nodes:
+                html_nodes.append(text_node_to_html_node(node))
+            processed_blocks.append(ParentNode("p", html_nodes))
         elif blocktype == BlockType.CODE:
-            processed_blocks.append((blocktype, block[4:-3]))
+            processed_blocks.append(ParentNode("pre", [ParentNode("code", [LeafNode(None, block[4:-3])])]))
+        elif blocktype == BlockType.HEADING:
+            html_nodes = []
+            heading_level = block.count("#", 0, block.find(" "))
+            text_nodes = text_to_textnodes(block[heading_level+1:].strip())
+            for node in text_nodes:
+                html_nodes.append(text_node_to_html_node(node))
+            processed_blocks.append(ParentNode(f"h{heading_level}", html_nodes))
         elif blocktype == BlockType.QUOTE:
-            quote_content = "\n".join(line[1:].strip() for line in block.split("\n"))
-            processed_blocks.append((blocktype, f"<blockquote>{quote_content}</blockquote>"))
+            qlist = block.split("\n")
+            plist = []
+            for l in qlist:
+                plist.append(l[1:].strip())
+            block = " ".join(plist)
+            text_nodes = text_to_textnodes(block)
+            html_nodes = []
+            for node in text_nodes:
+                html_nodes.append(text_node_to_html_node(node))
+            processed_blocks.append(ParentNode("blockquote", html_nodes))
         elif blocktype == BlockType.UNORDERED_LIST:
             list_items = [line[2:].strip() for line in block.split("\n")]
-            list_html = "".join(f"<li>{item}</li>" for item in list_items)
-            processed_blocks.append((blocktype, f"<ul>{list_html}</ul>"))
+            processed_list_items = []
+            for li in list_items:
+                html_nodes = []
+                text_nodes = text_to_textnodes(li)
+                for node in text_nodes:
+                    html_nodes.append(text_node_to_html_node(node))
+                processed_list_items.append(ParentNode("li",html_nodes))
+            processed_blocks.append(ParentNode("ul", processed_list_items))
         elif blocktype == BlockType.ORDERED_LIST:
             list_items = [line.split(". ", 1)[1].strip() for line in block.split("\n")]
-            list_html = "".join(f"<li>{item}</li>" for item in list_items)
-            processed_blocks.append((blocktype, f"<ol>{list_html}</ol>"))
+            processed_list_items = []
+            for li in list_items:
+                html_nodes = []
+                text_nodes = text_to_textnodes(li)
+                for node in text_nodes:
+                    html_nodes.append(text_node_to_html_node(node))
+                processed_list_items.append(ParentNode("li",html_nodes))
+            processed_blocks.append(ParentNode("ol", processed_list_items))
 
-    html_nodes = []
-    for blocktype, content in processed_blocks:
-        if blocktype == BlockType.CODE:
-            code_node = LeafNode(None, content)
-            html_nodes.append(ParentNode("pre", [ParentNode("code", [code_node])]))
-            continue
-        for text_node in text_to_textnodes(content):
-            html_nodes.append(text_node_to_html_node(text_node))
-
-    return ParentNode("div", html_nodes)
+    return ParentNode("div", processed_blocks)
 
 
