@@ -2,6 +2,7 @@ from html import HTMLNode, LeafNode, ParentNode
 from textnode import TextNode, TextType, text_node_to_html_node
 from markup import split_nodes_delimiter, split_nodes_image, split_nodes_link, text_to_textnodes
 from blockmarkup import BlockType, markdown_to_blocks, block_to_block_type
+import os
 
 def markdown_to_html_node(markdown):
     #print("Markdown to HTML Node:\n", markdown)  # Debugging print statement
@@ -59,3 +60,23 @@ def markdown_to_html_node(markdown):
     return ParentNode("div", processed_blocks)
 
 
+def extract_title(markdown):
+    lines = markdown.split("\n")
+    for l in lines:
+        if l[:2] == "# ":
+            return l[2:].strip()
+    raise Exception("No Header Present")
+
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    with open(from_path, encoding="utf-8") as ff:
+        fromfile = ff.read()
+    with open(template_path, encoding="utf-8") as tf:
+        templatefile = tf.read()
+    htmln = markdown_to_html_node(fromfile).to_html()
+    title = extract_title(fromfile)
+    htmlout = templatefile.replace("{{ Title }}", title)
+    htmlout = htmlout.replace("{{ Content }}", htmln)
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    with open(dest_path, "w", encoding="utf-8") as df:
+        df.write(htmlout)
